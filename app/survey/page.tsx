@@ -56,6 +56,7 @@ export default function SurveyPage() {
   const [answers, setAnswers] = useState<Record<string, string>>(
     Object.fromEntries(allQuestions.map((q) => [q.id, ""]))
   );
+  const [submitted, setSubmitted] = useState(false);
 
   function handleChange(id: string, value: string) {
     setAnswers((prev) => ({ ...prev, [id]: value }));
@@ -64,26 +65,33 @@ export default function SurveyPage() {
   function handleSubmit() {
     const unanswered = allQuestions.filter((q) => !answers[q.id]);
     if (unanswered.length > 0) return;
-    alert("Jawaban berhasil dikirim!");
+    setSubmitted(true);
+  }
+
+  if (submitted) {
+    return (
+      <div className="w-full max-w-md text-center">
+        <Sociometry />
+        <p className="mt-10 text-white/80 text-sm">You have already submitted this survey. Thank you for your response!</p>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8 [background:radial-gradient(ellipse_at_70%_30%,#0ea5e9_0%,#0369a1_50%,#0c1a2e_100%)] [font-family:'Segoe_UI',system-ui,sans-serif]">
-      <div className="w-full max-w-3xl">
-        <div className="text-center mb-8">
-          <Sociometry />
-          <p className="mt-2 text-white/80 text-sm">Answer each question by selecting a name from the list.</p>
-        </div>
-        <Card title="Form Survey">
-          <SurveyTable
-            categories={CATEGORIES}
-            names={NAMES}
-            answers={answers}
-            onAnswerChange={handleChange}
-          />
-          <Button onClick={handleSubmit}>Submit</Button>
-        </Card>
+    <div className="w-full max-w-3xl">
+      <div className="text-center mb-8">
+        <Sociometry />
+        <p className="mt-2 text-white/80 text-sm">Answer each question by selecting a name from the list.</p>
       </div>
+      <Card title="Form Survey">
+        <SurveyTable
+          categories={CATEGORIES}
+          names={NAMES}
+          answers={answers}
+          onAnswerChange={handleChange}
+        />
+        <Button onClick={handleSubmit}>Submit</Button>
+      </Card>
     </div>
   );
 }

@@ -27,7 +27,11 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col text-white [background:radial-gradient(ellipse_at_70%_30%,#0ea5e9_0%,#0369a1_50%,#0c1a2e_100%)] [font-family:'Segoe_UI',system-ui,sans-serif]">{children}</body>
+      <body className="min-h-full flex flex-col text-white [background:radial-gradient(ellipse_at_70%_30%,#0ea5e9_0%,#0369a1_50%,#0c1a2e_100%)] [font-family:'Segoe_UI',system-ui,sans-serif]">
+        <div className="min-h-screen flex items-center justify-center p-8 [background:radial-gradient(ellipse_at_70%_30%,#0ea5e9_0%,#0369a1_50%,#0c1a2e_100%)] [font-family:'Segoe_UI',system-ui,sans-serif]">
+          {children}
+        </div>
+      </body>
     </html>
   );
 }
