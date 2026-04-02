@@ -1,10 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sociometry from "../components/Sociometry";
 import Button from "../components/Button";
 import Card from "../components/Card";
 import SurveyTable from "../components/SurveyTable";
+
+type Category = {
+  category: string;
+  label: string;
+  questions: string[];
+};
+
+function buildAnswerKeys(data: Category[]): string[] {
+  return data.flatMap((c) =>
+    c.questions.map((_, i) => `${c.category}${i + 1}`)
+  );
+}
 
 const NAMES = [
   "",
@@ -15,36 +27,21 @@ const NAMES = [
   "Budi Santoso",
 ];
 
-const CATEGORIES = [
-  {
-    category: "L",
-    label: "Leadership",
-    questions: [
-      "Siapa yang menurut anda yang berkarakter leader?",
-      "Siapa yang menurut anda yang berkarakter follower?",
-      "Siapa yang menurut anda paling senang bekerja sama?",
-    ],
-  },
-  {
-    category: "M",
-    label: "Motivation",
-    questions: [
-      "Siapa yang menurut anda paling bersemangat dalam bekerja?",
-      "Siapa yang menurut anda paling bertanggung jawab?",
-    ],
-  },
-  {
-    category: "C",
-    label: "Communication",
-    questions: [
-      "Siapa yang menurut anda paling mudah diajak bicara?",
-      "Siapa yang menurut anda paling bisa menyampaikan pendapat?",
-    ],
-  },
-];
-
 export default function SurveyPage() {
-  const allQuestions = CATEGORIES.flatMap((c) =>
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((res) => res.json())
+      .then((data: Category[]) => {
+        setCategories(data);
+        setAnswers(Object.fromEntries(buildAnswerKeys(data).map((id) => [id, ""])));
+      });
+  }, []);
+
+  const allQuestions = categories.flatMap((c) =>
     c.questions.map((q, i) => ({
       id: `${c.category}${i + 1}`,
       text: q,
@@ -52,11 +49,6 @@ export default function SurveyPage() {
       label: c.label,
     }))
   );
-
-  const [answers, setAnswers] = useState<Record<string, string>>(
-    Object.fromEntries(allQuestions.map((q) => [q.id, ""]))
-  );
-  const [submitted, setSubmitted] = useState(false);
 
   function handleChange(id: string, value: string) {
     setAnswers((prev) => ({ ...prev, [id]: value }));
@@ -85,7 +77,7 @@ export default function SurveyPage() {
       </div>
       <Card title="Form Survey">
         <SurveyTable
-          categories={CATEGORIES}
+          categories={categories}
           names={NAMES}
           answers={answers}
           onAnswerChange={handleChange}

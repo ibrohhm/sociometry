@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useRouter } from "next/navigation";
 import Button from "./components/Button";
 import Card from "./components/Card";
+import Input from "./components/Input";
 import Sociometry from "./components/Sociometry";
 
 export default function Home() {
@@ -32,14 +33,13 @@ export default function Home() {
       </p>
 
       <Card title="Join a survey">
-        <input
+        <Input
           ref={pinRef}
-          type="text"
           placeholder="Survey PIN"
           maxLength={10}
           inputMode="numeric"
-          className="w-full py-3.5 px-4 text-[1.1rem] font-semibold text-center border-2 border-[#bae6fd] rounded-[10px] outline-none text-[#0c1a2e] bg-[#fafafa] tracking-[0.12em] transition-[border-color,box-shadow] duration-200 placeholder:text-[#38bdf8] placeholder:font-medium placeholder:tracking-[0.05em] focus:border-[#0ea5e9] focus:shadow-[0_0_0_3px_rgba(14,165,233,0.15)] focus:bg-white"
           onKeyDown={handleKeyDown}
+          className="w-full py-3.5 px-4 text-[1.1rem] font-semibold text-center rounded-[10px] text-[#0c1a2e] bg-[#fafafa] tracking-[0.12em] placeholder:text-[#38bdf8] placeholder:font-medium placeholder:tracking-[0.05em] focus:shadow-[0_0_0_3px_rgba(14,165,233,0.15)] focus:bg-white"
         />
         <Button onClick={joinSurvey}>Enter</Button>
       </Card>

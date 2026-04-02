@@ -1,5 +1,6 @@
 import { currentUser } from "@clerk/nextjs/server";
 import AdminHeader from "../components/AdminHeader";
+import TeamList from "../components/TeamList";
 
 export default async function AdminPage() {
   const user = await currentUser();
@@ -11,8 +12,8 @@ export default async function AdminPage() {
         email={user?.emailAddresses[0]?.emailAddress ?? null}
       />
 
-      <main className="flex flex-col items-center gap-6 p-8">
-        <p className="text-white/80">Create and manage your surveys here.</p>
+      <main className="flex flex-col items-center gap-6 p-8 w-full">
+        <TeamList />
       </main>
     </div>
   );

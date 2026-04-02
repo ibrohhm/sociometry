@@ -1,0 +1,20 @@
+[
+  {
+    "id": "1",
+    "name": "Team Alpha",
+    "members": ["Doddy Bilhaqi", "Fauzan Hanif", "Ahmad Rizki"],
+    "pin": "1234"
+  },
+  {
+    "id": "2",
+    "name": "Team Beta",
+    "members": ["Siti Rahayu", "Budi Santoso", "Rina Kusuma"],
+    "pin": "5678"
+  },
+  {
+    "id": "3",
+    "name": "Team Gamma",
+    "members": ["Dian Pratama", "Hendra Wijaya", "Mega Lestari", "Andika Putra"],
+    "pin": "9012"
+  }
+]
