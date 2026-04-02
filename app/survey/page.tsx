@@ -78,7 +78,7 @@ export default function SurveyPage() {
   }
 
   return (
-    <div className="w-full max-w-3xl">
+    <div className="w-full max-w-3xl p-8">
       <div className="text-center mb-8">
         <Sociometry />
         <p className="mt-2 text-white/80 text-sm">Answer each question by selecting a name from the list.</p>
