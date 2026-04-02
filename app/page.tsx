@@ -1,65 +1,59 @@
-import Image from "next/image";
+"use client";
+
+import { useRef } from "react";
+import { useRouter } from "next/navigation";
+import Button from "./components/Button";
+import Card from "./components/Card";
+import Sociometry from "./components/Sociometry";
 
 export default function Home() {
+  const pinRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+
+  function joinSurvey() {
+    const pin = pinRef.current?.value.trim();
+    if (!pin) {
+      pinRef.current?.focus();
+      return;
+    }
+    router.push("/survey/" + encodeURIComponent(pin));
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") joinSurvey();
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
+    <div className="min-h-screen flex items-center justify-center text-white [background:radial-gradient(ellipse_at_70%_30%,#7c3aed_0%,#4c1d95_50%,#2e1065_100%)] [font-family:'Segoe_UI',system-ui,sans-serif]">
+      <div className="flex flex-col items-center gap-8 p-8 w-full max-w-[460px]">
+        <Sociometry />
+        <p className="-mt-4 text-[0.95rem] opacity-85 max-w-[300px] leading-relaxed text-center">
+          Map relationships in your group. Enter a survey PIN shared by your
+          facilitator to begin.
+        </p>
+
+        <Card title="Join a survey">
+          <input
+            ref={pinRef}
+            type="text"
+            placeholder="Survey PIN"
+            maxLength={10}
+            inputMode="numeric"
+            className="w-full py-3.5 px-4 text-[1.1rem] font-semibold text-center border-2 border-[#ddd6fe] rounded-[10px] outline-none text-[#1e1b4b] bg-[#fafafa] tracking-[0.12em] transition-[border-color,box-shadow] duration-200 placeholder:text-[#a78bfa] placeholder:font-medium placeholder:tracking-[0.05em] focus:border-[#7c3aed] focus:shadow-[0_0_0_3px_rgba(124,58,237,0.15)] focus:bg-white"
+            onKeyDown={handleKeyDown}
+          />
+          <Button onClick={joinSurvey}>Enter</Button>
+        </Card>
+
+        <p className="text-center text-[0.85rem] opacity-75 max-w-[320px] leading-relaxed">
+          Don&apos;t have a PIN? Ask your group leader.
+          <br />
+          Are you a facilitator?{" "}
+          <a href="/admin" className="text-[#c4b5fd] font-semibold no-underline hover:underline">
+            Create a survey &rarr;
           </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+        </p>
+      </div>
     </div>
   );
 }
