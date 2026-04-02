@@ -2,19 +2,32 @@
   {
     "id": "1",
     "name": "Team Alpha",
-    "members": ["Doddy Bilhaqi", "Fauzan Hanif", "Ahmad Rizki"],
+    "members": [
+      { "name": "Doddy Bilhaqi", "submitted": true },
+      { "name": "Fauzan Hanif", "submitted": false },
+      { "name": "Ahmad Rizki", "submitted": false }
+    ],
     "pin": "1234"
   },
   {
     "id": "2",
     "name": "Team Beta",
-    "members": ["Siti Rahayu", "Budi Santoso", "Rina Kusuma"],
+    "members": [
+      { "name": "Siti Rahayu", "submitted": false },
+      { "name": "Budi Santoso", "submitted": false },
+      { "name": "Rina Kusuma", "submitted": false }
+    ],
     "pin": "5678"
   },
   {
     "id": "3",
     "name": "Team Gamma",
-    "members": ["Dian Pratama", "Hendra Wijaya", "Mega Lestari", "Andika Putra"],
+    "members": [
+      { "name": "Dian Pratama", "submitted": false },
+      { "name": "Hendra Wijaya", "submitted": false },
+      { "name": "Mega Lestari", "submitted": false },
+      { "name": "Andika Putra", "submitted": false }
+    ],
     "pin": "9012"
   }
 ]

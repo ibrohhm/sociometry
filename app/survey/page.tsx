@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Sociometry from "../components/Sociometry";
 import Button from "../components/Button";
 import Card from "../components/Card";
@@ -12,25 +13,49 @@ type Category = {
   questions: string[];
 };
 
+type Member = {
+  name: string;
+  submitted: boolean;
+};
+
+type Team = {
+  id: string;
+  name: string;
+  members: Member[];
+  pin: string;
+};
+
+function memberClassName(submitted: boolean, selected: boolean): string {
+  if (submitted) return "border-gray-200 bg-gray-50 text-gray-400 line-through";
+  if (selected) return "border-[#0ea5e9] bg-[#f0f9ff] text-[#0369a1]";
+  return "border-[#bae6fd] bg-white text-gray-700 hover:border-[#0ea5e9]";
+}
+
 function buildAnswerKeys(data: Category[]): string[] {
   return data.flatMap((c) =>
     c.questions.map((_, i) => `${c.category}${i + 1}`)
   );
 }
 
-const NAMES = [
-  "",
-  "Doddy Bilhaqi",
-  "Fauzan Hanif",
-  "Ahmad Rizki",
-  "Siti Rahayu",
-  "Budi Santoso",
-];
-
 export default function SurveyPage() {
+  const pin = useSearchParams().get("pin") ?? "";
+  const [team, setTeam] = useState<Team | null>(null);
+  const [teamError, setTeamError] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [currentUser, setCurrentUser] = useState("");
+  const [started, setStarted] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    fetch(`/api/teams/${encodeURIComponent(pin)}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Team not found");
+        return res.json();
+      })
+      .then((data: Team) => setTeam(data))
+      .catch(() => setTeamError(true));
+  }, [pin]);
 
   useEffect(() => {
     fetch("/api/categories")
@@ -69,6 +94,48 @@ export default function SurveyPage() {
     );
   }
 
+  if (teamError) {
+    return (
+      <div className="w-full max-w-sm p-8 flex flex-col items-center gap-4 text-center">
+        <Sociometry />
+        <p className="text-white/80 text-sm">Survey not found. The PIN may be invalid or expired.</p>
+        <Button onClick={() => { globalThis.location.href = "/"; }}>Back to Home</Button>
+      </div>
+    );
+  }
+
+  if (!started) {
+    return (
+      <div className="w-full max-w-sm p-8 flex flex-col gap-6">
+        <div className="text-center">
+          <Sociometry />
+        </div>
+        <Card title={team?.name ?? "Loading..."}>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Who are you?</p>
+          <ul className="flex flex-col gap-2">
+            {(team?.members ?? []).map((member) => (
+              <li key={member.name}>
+                <Button
+                  variant="ghost"
+                  onClick={() => setCurrentUser(member.name)}
+                  disabled={member.submitted}
+                  className={`text-left px-4 py-2.5 text-sm font-medium border-2 transition-all duration-150 ${memberClassName(member.submitted, currentUser === member.name)}`}
+                >
+                  {member.name}
+                </Button>
+              </li>
+            ))}
+          </ul>
+          <Button onClick={() => setStarted(true)} disabled={!currentUser}>
+            Start Survey
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
+  const names = ["", ...(team?.members ?? []).filter((m) => m.name !== currentUser).map((m) => m.name)];
+
   return (
     <div className="w-full max-w-3xl p-8">
       <div className="text-center mb-8">
@@ -78,7 +145,7 @@ export default function SurveyPage() {
       <Card title="Form Survey">
         <SurveyTable
           categories={categories}
-          names={NAMES}
+          names={names}
           answers={answers}
           onAnswerChange={handleChange}
         />

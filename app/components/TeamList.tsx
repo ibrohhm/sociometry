@@ -6,10 +6,15 @@ import Button from "./Button";
 import RemovableList from "./RemovableList";
 import Input from "./Input";
 
+type Member = {
+  name: string;
+  submitted: boolean;
+};
+
 type Team = {
   id: string;
   name: string;
-  members: string[];
+  members: Member[];
   pin: string;
 };
 
@@ -26,6 +31,7 @@ export default function TeamList() {
   const [memberInput, setMemberInput] = useState("");
   const [members, setMembers] = useState<string[]>([]);
   const [memberError, setMemberError] = useState("");
+  const [pin, setPin] = useState("");
 
   function handleAddMember() {
     const trimmed = memberInput.trim();
@@ -44,16 +50,17 @@ export default function TeamList() {
   }
 
   function handleSubmit() {
-    if (!teamName.trim() || members.length === 0) return;
+    if (!teamName.trim() || members.length === 0 || !pin.trim()) return;
     setTeams((prev) => [...prev, {
       id: crypto.randomUUID(),
       name: teamName.trim(),
-      members,
-      pin: Math.floor(1000 + Math.random() * 9000).toString(),
+      members: members.map((name) => ({ name, submitted: false })),
+      pin: pin.trim(),
     }]);
     setTeamName("");
     setMembers([]);
     setMemberInput("");
+    setPin("");
     setShowModal(false);
   }
 
@@ -62,6 +69,7 @@ export default function TeamList() {
     setTeamName("");
     setMembers([]);
     setMemberInput("");
+    setPin("");
   }
 
   return (
@@ -72,15 +80,22 @@ export default function TeamList() {
             key={team.name}
             className="cursor-pointer transition-transform duration-200 hover:scale-105"
           >
-            <Card title={team.name}>
+            <Card title={team.name} subtitle={`PIN: ${team.pin}`}>
               <ul className="flex flex-col gap-2">
                 {team.members.map((member) => (
                   <li
-                    key={member}
-                    className="flex items-center gap-2 text-sm text-gray-700"
+                    key={member.name}
+                    className="flex items-center justify-between gap-2 text-sm text-gray-700"
                   >
-                    <span className="w-2 h-2 rounded-full bg-[#0ea5e9] shrink-0" />
-                    {member}
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#0ea5e9] shrink-0" />
+                      {member.name}
+                    </span>
+                    {member.submitted && (
+                      <span className="text-[0.65rem] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md bg-green-100 text-green-600">
+                        Submitted
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -110,6 +125,20 @@ export default function TeamList() {
                 value={teamName}
                 onChange={setTeamName}
                 placeholder="e.g. Team Delta"
+                className="w-full"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                PIN
+              </label>
+              <Input
+                value={pin}
+                onChange={(v) => setPin(v.replaceAll(/\D/g, ""))}
+                placeholder="e.g. 1234"
+                inputMode="numeric"
+                maxLength={4}
                 className="w-full"
               />
             </div>

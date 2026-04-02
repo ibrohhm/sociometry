@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "./components/Button";
 import Card from "./components/Card";
@@ -10,11 +10,22 @@ import Sociometry from "./components/Sociometry";
 export default function Home() {
   const pinRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const [error, setError] = useState("");
 
-  function joinSurvey() {
+  async function joinSurvey() {
     const pin = pinRef.current?.value.trim();
     if (!pin) {
       pinRef.current?.focus();
+      return;
+    }
+    setError("");
+    const res = await fetch("/api/survey/join", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pin }),
+    });
+    if (!res.ok) {
+      setError("Invalid PIN. Please try again.");
       return;
     }
     router.push("/survey?pin=" + encodeURIComponent(pin));
@@ -41,6 +52,7 @@ export default function Home() {
           onKeyDown={handleKeyDown}
           className="w-full py-3.5 px-4 text-[1.1rem] font-semibold text-center rounded-[10px] text-[#0c1a2e] bg-[#fafafa] tracking-[0.12em] placeholder:text-[#38bdf8] placeholder:font-medium placeholder:tracking-[0.05em] focus:shadow-[0_0_0_3px_rgba(14,165,233,0.15)] focus:bg-white"
         />
+        {error && <p className="text-xs text-red-500 text-center">{error}</p>}
         <Button onClick={joinSurvey}>Enter</Button>
       </Card>
 
