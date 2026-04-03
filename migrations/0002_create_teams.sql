@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS teams (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  pin INTEGER NOT NULL,
+  facilitator_id INTEGER NOT NULL,
+  FOREIGN KEY (facilitator_id) REFERENCES users(id)
+);
