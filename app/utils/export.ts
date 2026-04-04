@@ -1,8 +1,8 @@
 import * as XLSX from "xlsx";
 import { CATEGORIES } from "../constants/categories";
-import type { NominationResult } from "../types/nomination";
+import type { SociomatrixData } from "../types/nomination";
 
-export function exportNominationsXlsx(teamName: string, result: NominationResult) {
+export function exportNominationsXlsx(teamName: string, result: SociomatrixData) {
   const header1 = ["No", "Name", ...CATEGORIES.flatMap((c) => [c, ""])];
   const header2 = ["", "", ...CATEGORIES.flatMap(() => ["+", "-"])];
   const dataRows = Object.entries(result).map(([name, cats], i) => [
@@ -23,6 +23,6 @@ export function exportNominationsXlsx(teamName: string, result: NominationResult
   ];
 
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Nominations");
-  XLSX.writeFile(wb, `${teamName}-nominations.xlsx`);
+  XLSX.utils.book_append_sheet(wb, ws, "Sociomatrix");
+  XLSX.writeFile(wb, `${teamName}-sociomatrix.xlsx`);
 }

@@ -8,7 +8,8 @@ import Input from "./Input";
 import Label from "./Label";
 import ErrorText from "./ErrorText";
 import type { Team } from "../types/team";
-import { buildNominationResult, buildNominationResultByMember, calculateCohesion, type Nomination } from "../types/nomination";
+import { buildSociomatrixData, buildSociomatrixDataByMember, calculateCohesion, type Nomination, type SociomatrixData } from "../types/nomination";
+import Sociomatrix from "./Sociomatrix";
 import { exportNominationsXlsx } from "../utils/export";
 import LoadingOverlay from "./LoadingOverlay";
 import Modal from "./Modal";
@@ -24,6 +25,7 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+  const [resultModal, setResultModal] = useState<{ teamName: string; result: SociomatrixData } | null>(null);
 
   function handleAddMember() {
     const trimmed = memberInput.trim();
@@ -104,14 +106,13 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
     }
 
     const data: Nomination[] = await res.json();
-    const result = buildNominationResult(data);
-    const resultByMember = buildNominationResultByMember(data);
+    const result = buildSociomatrixData(data);
+    const resultByMember = buildSociomatrixDataByMember(data);
 
-    console.log("Nominations for", team.name, result);
-    console.log("Cohesion member for", team.name, resultByMember);
+    console.log("sociomatrix", result)
     console.log("Cohesion for", team.name, calculateCohesion(resultByMember));
 
-    exportNominationsXlsx(team.name, result);
+    setResultModal({ teamName: team.name, result });
   }
 
   async function handleUpdate() {
@@ -167,7 +168,7 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
             </ul>
             <div className="flex gap-2 justify-end mt-1">
               <Button size="sm" variant="secondary" disabled={team.members.some((m) => m.submitted)} onClick={() => handleEdit(team)}>Edit</Button>
-              <Button size="sm" variant="success" hidden={!(team.members.length > 0 && team.members.every((m) => m.submitted))} onClick={() => handleDownloadResult(team)}>Download Result</Button>
+              <Button size="sm" variant="success" hidden={!(team.members.length > 0 && team.members.every((m) => m.submitted))} onClick={() => handleDownloadResult(team)}>Show Result</Button>
             </div>
           </Card>
         ))}
@@ -180,6 +181,15 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
           <span className="text-sm font-semibold">Add Team</span>
         </button>
       </div>
+
+      <Modal show={!!resultModal} title={resultModal?.teamName ?? ""} size="xl">
+        <p className="text-sm font-semibold text-gray-500 -mt-2">Sociomatrix</p>
+        {resultModal && <Sociomatrix result={resultModal.result} />}
+        <div className="flex justify-end gap-2 mt-2">
+          <Button size="sm" variant="secondary" onClick={() => setResultModal(null)}>Close</Button>
+          {resultModal && <Button size="sm" variant="success" onClick={() => exportNominationsXlsx(resultModal.teamName, resultModal.result)}>Download Sociomatrix</Button>}
+        </div>
+      </Modal>
 
       <Modal show={showModal} title={editingTeam ? "Edit Team" : "Add New Team"}>
         <div className="flex flex-col gap-1">

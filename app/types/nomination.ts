@@ -12,14 +12,13 @@ export type ValenceCount = {
   negative: number;
 };
 
-export type NominationResultByCategory = Record<string, ValenceCount>;
+export type SociomatrixDataByCategory = Record<string, ValenceCount>;
 
-export type NominationResult = Record<string, NominationResultByCategory>;
+export type SociomatrixData = Record<string, SociomatrixDataByCategory>;
 
-// nominee_name -> { positive: number of members who gave positive, negative: number of members who gave negative }
-export type MemberNominationResult = Record<string, ValenceCount>;
+export type MemberSociomatrixData = Record<string, ValenceCount>;
 
-export function calculateCohesion(result: MemberNominationResult): number {
+export function calculateCohesion(result: MemberSociomatrixData): number {
   const nominees = Object.keys(result);
   if (nominees.length < 2) return 0;
 
@@ -36,7 +35,7 @@ export function calculateCohesion(result: MemberNominationResult): number {
   return total === 0 ? 0 : totalPositive / total;
 }
 
-export function buildNominationResultByMember(nominations: Nomination[]): MemberNominationResult {
+export function buildSociomatrixDataByMember(nominations: Nomination[]): MemberSociomatrixData {
   const tracker: Record<string, { positive: Set<string>; negative: Set<string> }> = {};
 
   for (const row of nominations) {
@@ -44,15 +43,15 @@ export function buildNominationResultByMember(nominations: Nomination[]): Member
     tracker[row.nominee_name][row.valence].add(row.submitter);
   }
 
-  const result: MemberNominationResult = {};
+  const result: MemberSociomatrixData = {};
   for (const [nominee, { positive, negative }] of Object.entries(tracker)) {
     result[nominee] = { positive: positive.size, negative: negative.size };
   }
   return result;
 }
 
-export function buildNominationResult(nominations: Nomination[]): NominationResult {
-  const result: NominationResult = {};
+export function buildSociomatrixData(nominations: Nomination[]): SociomatrixData {
+  const result: SociomatrixData = {};
   for (const row of nominations) {
     result[row.nominee_name] ??= {};
     result[row.nominee_name][row.category] ??= { positive: 0, negative: 0 };
