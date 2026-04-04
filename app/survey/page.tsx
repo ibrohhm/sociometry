@@ -33,6 +33,8 @@ export default function SurveyPage() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [currentStep, setCurrentStep] = useState(0);
+  const [stepError, setStepError] = useState("");
 
   useEffect(() => {
     fetch(`/api/teams/${encodeURIComponent(pin)}`)
@@ -73,6 +75,7 @@ export default function SurveyPage() {
 
   function handleChange(id: string, value: string) {
     setAnswers((prev) => ({ ...prev, [id]: value }));
+    setStepError("");
   }
 
   async function handleSubmit() {
@@ -155,6 +158,27 @@ export default function SurveyPage() {
   }
 
   const names = ["", ...(team?.members ?? []).filter((m) => m.name !== currentUser).map((m) => m.name)];
+  const lastStep = categories.length - 1;
+  const isFirst = currentStep === 0;
+  const isLast = currentStep === lastStep;
+  const currentCategory = categories[currentStep];
+  const currentStepAnswered = currentCategory?.questions.every(
+    (_, i) => answers[`${currentCategory.category}${i + 1}`]
+  ) ?? false;
+
+  const currentStepValues = currentCategory?.questions.map(
+    (_, i) => answers[`${currentCategory.category}${i + 1}`]
+  ) ?? [];
+  const hasDuplicates = currentStepValues.filter(Boolean).length !== new Set(currentStepValues.filter(Boolean)).size;
+
+  function validateStep(): boolean {
+    if (hasDuplicates) {
+      setStepError("each question must have a different answer");
+      return false;
+    }
+    setStepError("");
+    return true;
+  }
 
   return (
     <div className="w-full max-w-3xl p-8">
@@ -163,17 +187,33 @@ export default function SurveyPage() {
         <Sociometry />
         <p className="mt-2 text-white/80 text-sm">Answer each question by selecting a name from the list.</p>
       </div>
-      <Card title="Form Survey">
-        <SurveyTable
-          categories={categories}
-          names={names}
-          answers={answers}
-          onAnswerChange={handleChange}
-        />
+      <Card title={currentCategory?.label ?? "Form Survey"}>
+        {currentCategory && (
+          <SurveyTable
+            categories={[currentCategory]}
+            names={names}
+            answers={answers}
+            onAnswerChange={handleChange}
+          />
+        )}
+        <p className="text-xs text-gray-400 text-center">Step {currentStep + 1} of {categories.length}</p>
+        {stepError && (
+          <p className="text-red-500 text-sm text-center">{stepError}</p>
+        )}
         {submitError && (
           <p className="text-red-500 text-sm text-center">{submitError}</p>
         )}
-        <Button onClick={handleSubmit} disabled={loading}>{loading ? "Submitting..." : "Submit"}</Button>
+        <div className="flex gap-3">
+          {!isFirst && (
+            <Button variant="secondary" onClick={() => setCurrentStep((s) => s - 1)}>Previous</Button>
+          )}
+          {!isLast && (
+            <Button onClick={() => { if (validateStep()) setCurrentStep((s) => s + 1); }} disabled={!currentStepAnswered}>Next</Button>
+          )}
+          {isLast && (
+            <Button onClick={() => { if (validateStep()) handleSubmit(); }} disabled={loading || !currentStepAnswered}>{loading ? "Submitting..." : "Submit"}</Button>
+          )}
+        </div>
       </Card>
     </div>
   );
