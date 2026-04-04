@@ -1,31 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Card from "./Card";
 import Button from "./Button";
 import RemovableList from "./RemovableList";
 import Input from "./Input";
+import type { Team } from "../types/team";
 
-type Member = {
-  name: string;
-  submitted: boolean;
-};
-
-type Team = {
-  id: string;
-  name: string;
-  members: Member[];
-  pin: string;
-};
-
-export default function TeamList() {
-  const [teams, setTeams] = useState<Team[]>([]);
-
-  useEffect(() => {
-    fetch("/api/teams")
-      .then((res) => res.json())
-      .then((data: Team[]) => setTeams(data));
-  }, []);
+export default function TeamList({ initialTeams = [], facilitatorId }: { readonly initialTeams?: Team[], readonly facilitatorId: number }) {
+  const [teams, setTeams] = useState<Team[]>(initialTeams);
   const [showModal, setShowModal] = useState(false);
   const [teamName, setTeamName] = useState("");
   const [memberInput, setMemberInput] = useState("");
@@ -49,14 +32,24 @@ export default function TeamList() {
     setMembers((prev) => prev.filter((_, i) => i !== index));
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!teamName.trim() || members.length === 0 || !pin.trim()) return;
-    setTeams((prev) => [...prev, {
-      id: crypto.randomUUID(),
-      name: teamName.trim(),
-      members: members.map((name) => ({ name, submitted: false })),
-      pin: pin.trim(),
-    }]);
+
+    const res = await fetch("/api/teams", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: teamName.trim(),
+        pin: pin.trim(),
+        facilitator_id: facilitatorId,
+        members: members.map((name) => ({ name, submitted: false })),
+      }),
+    });
+
+    if (!res.ok) return;
+
+    const newTeam: Team = await res.json();
+    setTeams((prev) => [...prev, newTeam]);
     setTeamName("");
     setMembers([]);
     setMemberInput("");
