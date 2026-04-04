@@ -26,6 +26,7 @@ export default function SurveyPage() {
   const pin = useSearchParams().get("pin") ?? "";
   const [team, setTeam] = useState<Team | null>(null);
   const [teamError, setTeamError] = useState(false);
+  const [teamLoading, setTeamLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [currentUser, setCurrentUser] = useState("");
   const [started, setStarted] = useState(false);
@@ -37,13 +38,14 @@ export default function SurveyPage() {
   const [stepError, setStepError] = useState("");
 
   useEffect(() => {
-    fetch(`/api/teams/${encodeURIComponent(pin)}`)
+    fetch(`/api/teams/pin/${encodeURIComponent(pin)}`)
       .then((res) => {
         if (!res.ok) throw new Error("Team not found");
         return res.json();
       })
       .then((data: Team) => setTeam(data))
-      .catch(() => setTeamError(true));
+      .catch(() => setTeamError(true))
+      .finally(() => setTeamLoading(false));
   }, [pin]);
 
   useEffect(() => {
@@ -113,6 +115,15 @@ export default function SurveyPage() {
       <div className="w-full max-w-md text-center">
         <Sociometry />
         <p className="mt-10 text-white/80 text-sm">You have already submitted this survey. Thank you for your response!</p>
+      </div>
+    );
+  }
+
+  if (teamLoading) {
+    return (
+      <div className="w-full max-w-md flex flex-col items-center gap-4">
+        <Sociometry />
+        <LoadingOverlay/>
       </div>
     );
   }

@@ -18,6 +18,7 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
   const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
 
   function handleAddMember() {
     const trimmed = memberInput.trim();
@@ -67,8 +68,17 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
     setShowModal(false);
   }
 
+  function handleEdit(team: Team) {
+    setEditingTeam(team);
+    setTeamName(team.name);
+    setPin(String(team.pin));
+    setMembers(team.members.map((m) => m.name));
+    setShowModal(true);
+  }
+
   function handleClose() {
     setShowModal(false);
+    setEditingTeam(null);
     setTeamName("");
     setMembers([]);
     setMemberInput("");
@@ -76,14 +86,43 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
     setSubmitError("");
   }
 
+  async function handleUpdate() {
+    if (!teamName.trim() || members.length === 0 || !pin.trim() || !editingTeam) return;
+
+    setLoading(true);
+    setSubmitError("");
+    const res = await fetch(`/api/teams/${editingTeam.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: teamName.trim(),
+        pin: pin.trim(),
+        members: members.map((name) => ({ name, submitted: editingTeam.members.find((m) => m.name === name)?.submitted ?? false })),
+      }),
+    });
+    setLoading(false);
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      setSubmitError(body?.error ?? "Something went wrong.");
+      return;
+    }
+
+    const updated: Team = await res.json();
+    setTeams((prev) => prev.map((t) => t.id === updated.id ? updated : t));
+    handleClose();
+  }
+
   return (
     <>
       {loading && <LoadingOverlay />}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
         {teams.map((team) => (
-          <div
+          <button
             key={team.name}
-            className="cursor-pointer transition-transform duration-200 hover:scale-105"
+            type="button"
+            onClick={() => handleEdit(team)}
+            className="text-left w-full cursor-pointer transition-transform duration-200 hover:scale-105"
           >
             <Card title={team.name} subtitle={`PIN: ${team.pin}`}>
               <ul className="flex flex-col gap-2">
@@ -105,7 +144,7 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
                 ))}
               </ul>
             </Card>
-          </div>
+          </button>
         ))}
 
         <button
@@ -120,13 +159,14 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 flex flex-col gap-4">
-            <h2 className="text-[#0369a1] font-bold text-lg">Add New Team</h2>
+            <h2 className="text-[#0369a1] font-bold text-lg">{editingTeam ? "Edit Team" : "Add New Team"}</h2>
 
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <label htmlFor="team-name" className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                 Team Name
               </label>
               <Input
+                id="team-name"
                 value={teamName}
                 onChange={setTeamName}
                 placeholder="e.g. Team Delta"
@@ -135,10 +175,11 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <label htmlFor="team-pin" className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                 PIN
               </label>
               <Input
+                id="team-pin"
                 value={pin}
                 onChange={(v) => setPin(v.replaceAll(/\D/g, ""))}
                 placeholder="e.g. 1234"
@@ -149,11 +190,12 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
             </div>
 
             <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <label htmlFor="team-member" className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                 Members
               </label>
               <div className="flex gap-2">
                 <Input
+                  id="team-member"
                   value={memberInput}
                   onChange={(v) => { setMemberInput(v); setMemberError(""); }}
                   onKeyDown={(e) => e.key === "Enter" && handleAddMember()}
@@ -171,12 +213,12 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
               <RemovableList items={members} onRemove={handleRemoveMember} />
             </div>
 
+            {submitError && (
+              <p className="text-red-500 text-sm text-center">{submitError}</p>
+            )}
             <div className="flex gap-3 mt-2">
-              {submitError && (
-                <p className="text-red-500 text-sm">{submitError}</p>
-              )}
               <Button variant="secondary" onClick={handleClose}>Cancel</Button>
-              <Button onClick={handleSubmit} disabled={!teamName.trim() || members.length === 0}>Save Team</Button>
+              <Button onClick={editingTeam ? handleUpdate : handleSubmit} disabled={!teamName.trim() || members.length === 0}>{editingTeam ? "Update Team" : "Save Team"}</Button>
             </div>
           </div>
         </div>

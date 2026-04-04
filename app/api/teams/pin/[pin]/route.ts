@@ -1,4 +1,4 @@
-import type { Team } from "../../../types/team";
+import type { Team } from "../../../../types/team";
 
 export async function GET(
   _request: Request,
@@ -7,7 +7,7 @@ export async function GET(
   const { pin } = await params;
 
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/teams/${encodeURIComponent(pin)}`
+    `${process.env.NEXT_PUBLIC_API_URL}/api/teams/pin/${encodeURIComponent(pin)}`
   );
 
   if (!res.ok) {

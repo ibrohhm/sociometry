@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 
 type InputProps = {
+  id?: string;
   value?: string;
   onChange?: (value: string) => void;
   placeholder?: string;
@@ -11,9 +12,10 @@ type InputProps = {
 };
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ value, onChange, placeholder, onKeyDown, maxLength, inputMode, className = "" }, ref) => {
+  ({ id, value, onChange, placeholder, onKeyDown, maxLength, inputMode, className = "" }, ref) => {
     return (
       <input
+        id={id}
         ref={ref}
         type="text"
         value={value}
