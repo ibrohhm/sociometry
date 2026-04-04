@@ -7,6 +7,12 @@ import Button from "../components/Button";
 import Card from "../components/Card";
 import SurveyTable from "../components/SurveyTable";
 
+type Question = {
+  id: number;
+  category: string;
+  question: string;
+};
+
 type Category = {
   category: string;
   label: string;
@@ -58,11 +64,19 @@ export default function SurveyPage() {
   }, [pin]);
 
   useEffect(() => {
-    fetch("/api/categories")
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/questions`)
       .then((res) => res.json())
-      .then((data: Category[]) => {
-        setCategories(data);
-        setAnswers(Object.fromEntries(buildAnswerKeys(data).map((id) => [id, ""])));
+      .then((data: Question[]) => {
+        const grouped = data.reduce<Record<string, Category>>((acc, q) => {
+          if (!acc[q.category]) {
+            acc[q.category] = { category: q.category, label: q.category, questions: [] };
+          }
+          acc[q.category].questions.push(q.question);
+          return acc;
+        }, {});
+        const cats = Object.values(grouped);
+        setCategories(cats);
+        setAnswers(Object.fromEntries(buildAnswerKeys(cats).map((id) => [id, ""])));
       });
   }, []);
 
