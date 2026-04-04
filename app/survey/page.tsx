@@ -6,6 +6,7 @@ import Sociometry from "../components/Sociometry";
 import Button from "../components/Button";
 import Card from "../components/Card";
 import SurveyTable from "../components/SurveyTable";
+import LoadingOverlay from "../components/LoadingOverlay";
 
 type Question = {
   id: number;
@@ -53,6 +54,8 @@ export default function SurveyPage() {
   const [started, setStarted] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   useEffect(() => {
     fetch(`/api/teams/${encodeURIComponent(pin)}`)
@@ -103,18 +106,25 @@ export default function SurveyPage() {
     if (!submitter) return;
 
     const nominations = allQuestions.map((q) => {
-      const nomineeName = answers[q.id];
-      const nominee = team?.members.find((m) => m.name === nomineeName);
-      return { question_id: q.questionId, nominee_id: nominee!.id };
+       const nomineeName = answers[q.id];
+       const nominee = team?.members.find((m) => m.name === nomineeName);
+       return { question_id: q.questionId, nominee_id: nominee!.id };
     });
 
+    setLoading(true);
+    setSubmitError("");
     const res = await fetch("/api/survey/submit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ submitter_id: submitter.id, nominations }),
     });
+    setLoading(false);
 
-    if (!res.ok) return;
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      setSubmitError(body?.error ?? "something wrong");
+      return;
+    }
     setSubmitted(true);
   }
 
@@ -171,6 +181,7 @@ export default function SurveyPage() {
 
   return (
     <div className="w-full max-w-3xl p-8">
+      {loading && <LoadingOverlay />}
       <div className="text-center mb-8">
         <Sociometry />
         <p className="mt-2 text-white/80 text-sm">Answer each question by selecting a name from the list.</p>
@@ -182,7 +193,10 @@ export default function SurveyPage() {
           answers={answers}
           onAnswerChange={handleChange}
         />
-        <Button onClick={handleSubmit}>Submit</Button>
+        {submitError && (
+          <p className="text-red-500 text-sm text-center">{submitError}</p>
+        )}
+        <Button onClick={handleSubmit} disabled={loading}>{loading ? "Submitting..." : "Submit"}</Button>
       </Card>
     </div>
   );

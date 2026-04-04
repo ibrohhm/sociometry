@@ -6,6 +6,7 @@ import Button from "./Button";
 import RemovableList from "./RemovableList";
 import Input from "./Input";
 import type { Team } from "../types/team";
+import LoadingOverlay from "./LoadingOverlay";
 
 export default function TeamList({ initialTeams = [], facilitatorId }: { readonly initialTeams?: Team[], readonly facilitatorId: number }) {
   const [teams, setTeams] = useState<Team[]>(initialTeams);
@@ -15,6 +16,8 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
   const [members, setMembers] = useState<string[]>([]);
   const [memberError, setMemberError] = useState("");
   const [pin, setPin] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   function handleAddMember() {
     const trimmed = memberInput.trim();
@@ -35,6 +38,8 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
   async function handleSubmit() {
     if (!teamName.trim() || members.length === 0 || !pin.trim()) return;
 
+    setLoading(true);
+    setSubmitError("");
     const res = await fetch("/api/teams", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -45,8 +50,13 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
         members: members.map((name) => ({ name, submitted: false })),
       }),
     });
+    setLoading(false);
 
-    if (!res.ok) return;
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      setSubmitError(body?.error ?? "something went wrong");
+      return;
+    }
 
     const newTeam: Team = await res.json();
     setTeams((prev) => [...prev, newTeam]);
@@ -63,10 +73,12 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
     setMembers([]);
     setMemberInput("");
     setPin("");
+    setSubmitError("");
   }
 
   return (
     <>
+      {loading && <LoadingOverlay />}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
         {teams.map((team) => (
           <div
@@ -160,6 +172,9 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
             </div>
 
             <div className="flex gap-3 mt-2">
+              {submitError && (
+                <p className="text-red-500 text-sm">{submitError}</p>
+              )}
               <Button variant="secondary" onClick={handleClose}>Cancel</Button>
               <Button onClick={handleSubmit} disabled={!teamName.trim() || members.length === 0}>Save Team</Button>
             </div>
