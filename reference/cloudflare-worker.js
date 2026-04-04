@@ -224,6 +224,39 @@ export default {
       return Response.json({ success: true }, { status: 200, headers: corsHeaders });
     }
 
+    const nominationsMatch = /^\/api\/teams\/(\d+)\/nominations$/.exec(url.pathname);
+    if (request.method === 'GET' && nominationsMatch) {
+      const teamId = Number.parseInt(nominationsMatch[1]);
+
+      const { results: members } = await env.sociometryDB.prepare(
+        'SELECT id, submitted FROM members WHERE team_id = ?'
+      ).bind(teamId).all();
+
+      if (members.length === 0) {
+        return Response.json({ error: 'Team not found' }, { status: 404, headers: corsHeaders });
+      }
+
+      const notSubmitted = members.filter((m) => m.submitted !== 1);
+      if (notSubmitted.length > 0) {
+        return Response.json(
+          { error: 'Not all members have submitted', pending: notSubmitted.map((m) => m.id) },
+          { status: 400, headers: corsHeaders }
+        );
+      }
+
+      const { results } = await env.sociometryDB.prepare(
+        `SELECT t.name as team_name, m.name as submitter, q.category, q.valence, q.question, nominee.name as nominee_name
+         FROM teams t
+         LEFT JOIN members m ON m.team_id = t.id
+         LEFT JOIN nominations n ON n.submitter_id = m.id
+         LEFT JOIN questions q ON q.id = n.question_id
+         LEFT JOIN members nominee ON nominee.id = n.nominee_id
+         WHERE t.id = ?`
+      ).bind(teamId).all();
+
+      return Response.json(results, { headers: corsHeaders });
+    }
+
     return Response.json({ error: 'Not Found' }, { status: 404, headers: corsHeaders });
   },
 };

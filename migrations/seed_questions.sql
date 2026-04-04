@@ -7,5 +7,5 @@ INSERT INTO questions (category, question, valence) VALUES
   ('Skill', 'Who do you think has PDCA 8 Steps 7 Tools skills?', 'negative'),
   ('Job', 'Who do you think truly understands their job?', 'positive'),
   ('Job', 'Who do you think still needs guidance in their job?', 'negative'),
-  ('Recreational', 'Who do you think enjoys creative activities together?', 'positive'),
-  ('Recreational', 'Who do you think enjoys creative activities individually?', 'negative');
+  ('Recreative', 'Who do you think enjoys creative activities together?', 'positive'),
+  ('Recreative', 'Who do you think enjoys creative activities individually?', 'negative');

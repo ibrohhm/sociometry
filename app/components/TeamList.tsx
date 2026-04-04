@@ -8,6 +8,8 @@ import Input from "./Input";
 import Label from "./Label";
 import ErrorText from "./ErrorText";
 import type { Team } from "../types/team";
+import { buildNominationResult, buildNominationResultByMember, calculateCohesion, type Nomination } from "../types/nomination";
+import { exportNominationsXlsx } from "../utils/export";
 import LoadingOverlay from "./LoadingOverlay";
 import Modal from "./Modal";
 
@@ -89,6 +91,29 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
     setSubmitError("");
   }
 
+  async function handleDownloadResult(team: Team) {
+    console.log("team", team)
+    setLoading(true);
+    const res = await fetch(`/api/teams/${team.id}/nominations`);
+    setLoading(false);
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      console.error("Failed to fetch nominations:", body?.error);
+      return;
+    }
+
+    const data: Nomination[] = await res.json();
+    const result = buildNominationResult(data);
+    const resultByMember = buildNominationResultByMember(data);
+
+    console.log("Nominations for", team.name, result);
+    console.log("Cohesion member for", team.name, resultByMember);
+    console.log("Cohesion for", team.name, calculateCohesion(resultByMember));
+
+    exportNominationsXlsx(team.name, result);
+  }
+
   async function handleUpdate() {
     if (!teamName.trim() || members.length === 0 || !pin.trim() || !editingTeam) return;
 
@@ -142,7 +167,7 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
             </ul>
             <div className="flex gap-2 justify-end mt-1">
               <Button size="sm" variant="secondary" disabled={team.members.some((m) => m.submitted)} onClick={() => handleEdit(team)}>Edit</Button>
-              <Button size="sm" variant="success" hidden={!(team.members.length > 0 && team.members.every((m) => m.submitted))} onClick={() => {}}>Download Result</Button>
+              <Button size="sm" variant="success" hidden={!(team.members.length > 0 && team.members.every((m) => m.submitted))} onClick={() => handleDownloadResult(team)}>Download Result</Button>
             </div>
           </Card>
         ))}
