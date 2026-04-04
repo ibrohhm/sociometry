@@ -5,6 +5,8 @@ import Card from "./Card";
 import Button from "./Button";
 import RemovableList from "./RemovableList";
 import Input from "./Input";
+import Label from "./Label";
+import ErrorText from "./ErrorText";
 import type { Team } from "../types/team";
 import LoadingOverlay from "./LoadingOverlay";
 
@@ -104,7 +106,7 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
 
     if (!res.ok) {
       const body = await res.json().catch(() => null);
-      setSubmitError(body?.error ?? "Something went wrong.");
+      setSubmitError(body?.error ?? "something went wrong");
       return;
     }
 
@@ -115,7 +117,7 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
 
   return (
     <>
-      {loading && <LoadingOverlay />}
+      <LoadingOverlay loading={loading} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
         {teams.map((team) => (
           <button
@@ -162,9 +164,7 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
             <h2 className="text-[#0369a1] font-bold text-lg">{editingTeam ? "Edit Team" : "Add New Team"}</h2>
 
             <div className="flex flex-col gap-1">
-              <label htmlFor="team-name" className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                Team Name
-              </label>
+              <Label htmlFor="team-name">Team Name</Label>
               <Input
                 id="team-name"
                 value={teamName}
@@ -175,9 +175,7 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
             </div>
 
             <div className="flex flex-col gap-1">
-              <label htmlFor="team-pin" className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                PIN
-              </label>
+              <Label htmlFor="team-pin">PIN</Label>
               <Input
                 id="team-pin"
                 value={pin}
@@ -190,9 +188,7 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
             </div>
 
             <div className="flex flex-col gap-1">
-              <label htmlFor="team-member" className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                Members
-              </label>
+              <Label htmlFor="team-member">Members</Label>
               <div className="flex gap-2">
                 <Input
                   id="team-member"
@@ -206,16 +202,11 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
                   <Button onClick={handleAddMember}>Add</Button>
                 </div>
               </div>
-              {memberError && (
-                <p className="text-xs text-red-500 mt-1">{memberError}</p>
-              )}
-
+              <ErrorText show={!!memberError} className="text-xs mt-1">{memberError}</ErrorText>
               <RemovableList items={members} onRemove={handleRemoveMember} />
             </div>
 
-            {submitError && (
-              <p className="text-red-500 text-sm text-center">{submitError}</p>
-            )}
+            <ErrorText show={!!submitError} className="text-center">{submitError}</ErrorText>
             <div className="flex gap-3 mt-2">
               <Button variant="secondary" onClick={handleClose}>Cancel</Button>
               <Button onClick={editingTeam ? handleUpdate : handleSubmit} disabled={!teamName.trim() || members.length === 0}>{editingTeam ? "Update Team" : "Save Team"}</Button>

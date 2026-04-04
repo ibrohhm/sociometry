@@ -6,6 +6,7 @@ import Button from "./components/Button";
 import Card from "./components/Card";
 import Input from "./components/Input";
 import Sociometry from "./components/Sociometry";
+import ErrorText from "./components/ErrorText";
 
 export default function Home() {
   const pinRef = useRef<HTMLInputElement>(null);
@@ -52,7 +53,7 @@ export default function Home() {
           onKeyDown={handleKeyDown}
           className="w-full py-3.5 px-4 text-[1.1rem] font-semibold text-center rounded-[10px] text-[#0c1a2e] bg-[#fafafa] tracking-[0.12em] placeholder:text-[#38bdf8] placeholder:font-medium placeholder:tracking-[0.05em] focus:shadow-[0_0_0_3px_rgba(14,165,233,0.15)] focus:bg-white"
         />
-        {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+        <ErrorText show={!!error} className="text-xs text-center">{error}</ErrorText>
         <Button onClick={joinSurvey}>Enter</Button>
       </Card>
 

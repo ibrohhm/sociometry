@@ -9,6 +9,7 @@ import SurveyTable from "../components/SurveyTable";
 import LoadingOverlay from "../components/LoadingOverlay";
 import type { Question, Category } from "../types/question";
 import type { Team } from "../types/team";
+import ErrorText from "../components/ErrorText";
 
 function memberClassName(submitted: boolean, selected: boolean): string {
   if (submitted) return "border-gray-200 bg-gray-50 text-gray-400 line-through";
@@ -193,7 +194,7 @@ export default function SurveyPage() {
 
   return (
     <div className="w-full max-w-3xl p-8">
-      {loading && <LoadingOverlay />}
+      {<LoadingOverlay loading={loading}/>}
       <div className="text-center mb-8">
         <Sociometry />
         <p className="mt-2 text-white/80 text-sm">Answer each question by selecting a name from the list.</p>
@@ -208,12 +209,8 @@ export default function SurveyPage() {
           />
         )}
         <p className="text-xs text-gray-400 text-center">Step {currentStep + 1} of {categories.length}</p>
-        {stepError && (
-          <p className="text-red-500 text-sm text-center">{stepError}</p>
-        )}
-        {submitError && (
-          <p className="text-red-500 text-sm text-center">{submitError}</p>
-        )}
+        <ErrorText show={!!stepError} className="text-center">{stepError}</ErrorText>
+        <ErrorText show={!!submitError} className="text-center">{submitError}</ErrorText>
         <div className="flex gap-3">
           {!isFirst && (
             <Button variant="secondary" onClick={() => setCurrentStep((s) => s - 1)}>Previous</Button>
