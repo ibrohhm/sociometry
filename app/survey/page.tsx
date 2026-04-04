@@ -16,10 +16,11 @@ type Question = {
 type Category = {
   category: string;
   label: string;
-  questions: string[];
+  questions: { id: number; text: string }[];
 };
 
 type Member = {
+  id: number;
   name: string;
   submitted: boolean;
 };
@@ -64,14 +65,14 @@ export default function SurveyPage() {
   }, [pin]);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/questions`)
+    fetch(`/api/questions`)
       .then((res) => res.json())
       .then((data: Question[]) => {
         const grouped = data.reduce<Record<string, Category>>((acc, q) => {
           if (!acc[q.category]) {
             acc[q.category] = { category: q.category, label: q.category, questions: [] };
           }
-          acc[q.category].questions.push(q.question);
+          acc[q.category].questions.push({ id: q.id, text: q.question });
           return acc;
         }, {});
         const cats = Object.values(grouped);
@@ -83,7 +84,8 @@ export default function SurveyPage() {
   const allQuestions = categories.flatMap((c) =>
     c.questions.map((q, i) => ({
       id: `${c.category}${i + 1}`,
-      text: q,
+      questionId: q.id,
+      text: q.text,
       category: c.category,
       label: c.label,
     }))
@@ -93,9 +95,26 @@ export default function SurveyPage() {
     setAnswers((prev) => ({ ...prev, [id]: value }));
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const unanswered = allQuestions.filter((q) => !answers[q.id]);
     if (unanswered.length > 0) return;
+
+    const submitter = team?.members.find((m) => m.name === currentUser);
+    if (!submitter) return;
+
+    const nominations = allQuestions.map((q) => {
+      const nomineeName = answers[q.id];
+      const nominee = team?.members.find((m) => m.name === nomineeName);
+      return { question_id: q.questionId, nominee_id: nominee!.id };
+    });
+
+    const res = await fetch("/api/survey/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ submitter_id: submitter.id, nominations }),
+    });
+
+    if (!res.ok) return;
     setSubmitted(true);
   }
 

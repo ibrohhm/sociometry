@@ -1,7 +1,7 @@
 type Category = {
   category: string;
   label: string;
-  questions: string[];
+  questions: { id: number; text: string }[];
 };
 
 type SurveyTableProps = {
@@ -47,7 +47,7 @@ export default function SurveyTable({ categories, names, answers, onAnswerChange
                   </td>
                 )}
                 <td className="border border-[#bae6fd] px-4 py-3 text-sm text-gray-700">
-                  {num}. {question}
+                  {num}. {question.text}
                 </td>
                 <td className="border border-[#bae6fd] px-3 py-2 bg-amber-50">
                   <select
