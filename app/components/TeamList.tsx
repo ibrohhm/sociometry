@@ -8,9 +8,10 @@ import Input from "./Input";
 import Label from "./Label";
 import ErrorText from "./ErrorText";
 import type { Team } from "../types/team";
-import { buildSociomatrixData, buildSociomatrixDataByMember, calculateCohesion, type Nomination, type SociomatrixData } from "../types/nomination";
+import { buildSociomatrixData, buildNomineeRelationMap, calculateCohesion, type Nomination, type NomineeRelationMap, type SociomatrixData } from "../types/nomination";
 import Sociomatrix from "./Sociomatrix";
-import { exportNominationsXlsx } from "../utils/export";
+import NominationMatrix from "./NominationMatrix";
+import { exportSociomatrix, exportNominationMatrix } from "../utils/export";
 import LoadingOverlay from "./LoadingOverlay";
 import Modal from "./Modal";
 
@@ -25,7 +26,7 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
-  const [resultModal, setResultModal] = useState<{ teamName: string; result: SociomatrixData } | null>(null);
+  const [resultModal, setResultModal] = useState<{ teamName: string; result: SociomatrixData; relationMap: NomineeRelationMap } | null>(null);
 
   function handleAddMember() {
     const trimmed = memberInput.trim();
@@ -94,7 +95,6 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
   }
 
   async function handleDownloadResult(team: Team) {
-    console.log("team", team)
     setLoading(true);
     const res = await fetch(`/api/teams/${team.id}/nominations`);
     setLoading(false);
@@ -107,12 +107,9 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
 
     const data: Nomination[] = await res.json();
     const result = buildSociomatrixData(data);
-    const resultByMember = buildSociomatrixDataByMember(data);
+    const relationMap = buildNomineeRelationMap(data);
 
-    console.log("sociomatrix", result)
-    console.log("Cohesion for", team.name, calculateCohesion(resultByMember));
-
-    setResultModal({ teamName: team.name, result });
+    setResultModal({ teamName: team.name, result, relationMap });
   }
 
   async function handleUpdate() {
@@ -183,11 +180,31 @@ export default function TeamList({ initialTeams = [], facilitatorId }: { readonl
       </div>
 
       <Modal show={!!resultModal} title={resultModal?.teamName ?? ""} size="xl">
-        <p className="text-sm font-semibold text-gray-500 -mt-2">Sociomatrix</p>
+        <div>
+          <p className="font-semibold text-gray-700">Sociomatrix</p>
+          <p className="text-xs text-gray-400">Aggregated nomination counts (positive/negative) for each member per category.</p>
+        </div>
         {resultModal && <Sociomatrix result={resultModal.result} />}
+        <div className="mt-2">
+          <p className="font-semibold text-gray-700">Nomination Matrix</p>
+          <p className="text-xs text-gray-400">Individual nomination relationships between members — who nominated whom and with what valence.</p>
+        </div>
+        {resultModal && <NominationMatrix result={resultModal.relationMap} />}
+        {resultModal && (
+          <p className="text-sm text-gray-700 mt-1">
+            Group Cohesion: <span className="bg-yellow-200 px-2 py-0.5 rounded font-bold text-gray-800">{(calculateCohesion(resultModal.relationMap) * 100).toFixed(1)}%</span>
+          </p>
+        )}
+        <ul className="text-xs text-gray-500 list-disc list-inside space-y-1 mt-1">
+          <li>Each <span className="font-semibold text-gray-700">row</span> represents the person who gave the nominations.</li>
+          <li>Each <span className="font-semibold text-gray-700">column</span> represents the person who received the nominations.</li>
+          <li>The <span className="font-semibold text-gray-700">Total row</span> shows how many people gave a <span className="text-green-600 font-semibold">positive (+)</span> or <span className="text-red-500 font-semibold">negative (−)</span> nomination to each person.</li>
+          <li>The <span className="bg-yellow-200 px-1 rounded font-semibold text-gray-700">yellow cells</span> show the cohesion score — how positive the group&apos;s nominations are overall.</li>
+        </ul>
         <div className="flex justify-end gap-2 mt-2">
           <Button size="sm" variant="secondary" onClick={() => setResultModal(null)}>Close</Button>
-          {resultModal && <Button size="sm" variant="success" onClick={() => exportNominationsXlsx(resultModal.teamName, resultModal.result)}>Download Sociomatrix</Button>}
+          {resultModal && <Button size="sm" variant="success" onClick={() => exportSociomatrix(resultModal.teamName, resultModal.result)}>Download Sociomatrix</Button>}
+          {resultModal && <Button size="sm" className="bg-yellow-200 text-yellow-800 hover:bg-yellow-300" onClick={() => exportNominationMatrix(resultModal.teamName, resultModal.relationMap)}>Download Nomination Matrix</Button>}
         </div>
       </Modal>
 

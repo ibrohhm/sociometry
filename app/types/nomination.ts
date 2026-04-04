@@ -18,19 +18,20 @@ export type SociomatrixData = Record<string, SociomatrixDataByCategory>;
 
 export type MemberSociomatrixData = Record<string, ValenceCount>;
 
-export function calculateCohesion(result: MemberSociomatrixData): number {
+export function calculateCohesion(result: NomineeRelationMap): number {
   const nominees = Object.keys(result);
   if (nominees.length < 2) return 0;
 
   let totalPositive = 0;
   let totalNegative = 0;
-  for (const { positive, negative } of Object.values(result)) {
-    totalPositive += positive;
-    totalNegative += negative;
+  for (const [nominee, submitters] of Object.entries(result)) {
+    for (const [submitter, rel] of Object.entries(submitters)) {
+      if (submitter === nominee) continue;
+      if (rel.positive) totalPositive++;
+      if (rel.negative) totalNegative++;
+    }
   }
 
-  console.log("positive: ", totalPositive)
-  console.log("negative: ", totalNegative)
   const total = totalPositive + totalNegative;
   return total === 0 ? 0 : totalPositive / total;
 }
@@ -46,6 +47,19 @@ export function buildSociomatrixDataByMember(nominations: Nomination[]): MemberS
   const result: MemberSociomatrixData = {};
   for (const [nominee, { positive, negative }] of Object.entries(tracker)) {
     result[nominee] = { positive: positive.size, negative: negative.size };
+  }
+  return result;
+}
+
+// nominee_name -> submitter -> { positive, negative } booleans | undefined (no relation)
+export type NomineeRelationMap = Record<string, Record<string, { positive: boolean; negative: boolean }>>;
+
+export function buildNomineeRelationMap(nominations: Nomination[]): NomineeRelationMap {
+  const result: NomineeRelationMap = {};
+  for (const row of nominations) {
+    result[row.nominee_name] ??= {};
+    result[row.nominee_name][row.submitter] ??= { positive: false, negative: false };
+    result[row.nominee_name][row.submitter][row.valence] = true;
   }
   return result;
 }
