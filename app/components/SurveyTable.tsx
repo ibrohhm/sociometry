@@ -1,8 +1,5 @@
-type Category = {
-  category: string;
-  label: string;
-  questions: { id: number; text: string }[];
-};
+import RadioGroup from "./RadioGroup";
+import type { Category } from "../types/question";
 
 type SurveyTableProps = {
   categories: Category[];
@@ -12,8 +9,6 @@ type SurveyTableProps = {
 };
 
 export default function SurveyTable({ categories, names, answers, onAnswerChange }: Readonly<SurveyTableProps>) {
-  let questionNumber = 1;
-
   return (
     <table className="w-full border-collapse">
       <thead>
@@ -33,7 +28,6 @@ export default function SurveyTable({ categories, names, answers, onAnswerChange
         {categories.map((cat) =>
           cat.questions.map((question, qi) => {
             const id = `${cat.category}${qi + 1}`;
-            const num = questionNumber++;
             const isFirst = qi === 0;
             return (
               <tr key={id} className="hover:bg-sky-50 transition-colors">
@@ -47,20 +41,15 @@ export default function SurveyTable({ categories, names, answers, onAnswerChange
                   </td>
                 )}
                 <td className="border border-[#bae6fd] px-4 py-3 text-sm text-gray-700">
-                  {num}. {question.text}
+                  {question.text}
                 </td>
                 <td className="border border-[#bae6fd] px-3 py-2 bg-amber-50">
-                  <select
+                  <RadioGroup
+                    name={id}
+                    options={names.filter(Boolean)}
                     value={answers[id]}
-                    onChange={(e) => onAnswerChange(id, e.target.value)}
-                    className="w-full px-3 py-2 text-sm rounded-lg border-2 border-[#bae6fd] bg-white text-gray-700 outline-none focus:border-[#0ea5e9] focus:shadow-[0_0_0_3px_rgba(14,165,233,0.15)] transition-[border-color,box-shadow] duration-200 cursor-pointer"
-                  >
-                    {names.map((name) => (
-                      <option key={name} value={name}>
-                        {name || "-- Select a name --"}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(value) => onAnswerChange(id, value)}
+                  />
                 </td>
               </tr>
             );

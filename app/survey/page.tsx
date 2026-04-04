@@ -7,31 +7,8 @@ import Button from "../components/Button";
 import Card from "../components/Card";
 import SurveyTable from "../components/SurveyTable";
 import LoadingOverlay from "../components/LoadingOverlay";
-
-type Question = {
-  id: number;
-  category: string;
-  question: string;
-};
-
-type Category = {
-  category: string;
-  label: string;
-  questions: { id: number; text: string }[];
-};
-
-type Member = {
-  id: number;
-  name: string;
-  submitted: boolean;
-};
-
-type Team = {
-  id: string;
-  name: string;
-  members: Member[];
-  pin: string;
-};
+import type { Question, Category } from "../types/question";
+import type { Team } from "../types/team";
 
 function memberClassName(submitted: boolean, selected: boolean): string {
   if (submitted) return "border-gray-200 bg-gray-50 text-gray-400 line-through";
@@ -75,7 +52,7 @@ export default function SurveyPage() {
           if (!acc[q.category]) {
             acc[q.category] = { category: q.category, label: q.category, questions: [] };
           }
-          acc[q.category].questions.push({ id: q.id, text: q.question });
+          acc[q.category].questions.push({ id: q.id, text: q.question, valence: q.valence });
           return acc;
         }, {});
         const cats = Object.values(grouped);
