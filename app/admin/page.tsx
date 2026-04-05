@@ -39,6 +39,7 @@ async function getTeams(facilitatorId: string) {
 
 export default async function AdminPage() {
   const user = await currentUser();
+  console.log("Clerk user ID:", user?.id);
 
   try {
     const userData = await getUserData();

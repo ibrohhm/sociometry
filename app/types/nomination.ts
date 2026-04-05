@@ -27,8 +27,8 @@ export function calculateCohesion(result: NomineeRelationMap): number {
   for (const [nominee, submitters] of Object.entries(result)) {
     for (const [submitter, rel] of Object.entries(submitters)) {
       if (submitter === nominee) continue;
-      if (rel.positive) totalPositive++;
-      if (rel.negative) totalNegative++;
+      if (rel.positive.length > 0) totalPositive++;
+      if (rel.negative.length > 0) totalNegative++;
     }
   }
 
@@ -51,15 +51,16 @@ export function buildSociomatrixDataByMember(nominations: Nomination[]): MemberS
   return result;
 }
 
-// nominee_name -> submitter -> { positive, negative } booleans | undefined (no relation)
-export type NomineeRelationMap = Record<string, Record<string, { positive: boolean; negative: boolean }>>;
+// nominee_name -> submitter -> { positive, negative } category initials (L, H, S, J, R)
+export type NomineeRelationMap = Record<string, Record<string, { positive: string[]; negative: string[] }>>;
 
 export function buildNomineeRelationMap(nominations: Nomination[]): NomineeRelationMap {
   const result: NomineeRelationMap = {};
   for (const row of nominations) {
     result[row.nominee_name] ??= {};
-    result[row.nominee_name][row.submitter] ??= { positive: false, negative: false };
-    result[row.nominee_name][row.submitter][row.valence] = true;
+    result[row.nominee_name][row.submitter] ??= { positive: [], negative: [] };
+    const initial = row.category[0].toUpperCase();
+    result[row.nominee_name][row.submitter][row.valence].push(initial);
   }
   return result;
 }

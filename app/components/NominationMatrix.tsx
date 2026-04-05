@@ -14,8 +14,8 @@ export default function NominationMatrix({ result, showTotal = true }: Readonly<
     submitters.map((submitter) => [
       submitter,
       {
-        pos: submitters.filter((s) => s !== submitter && result[submitter]?.[s]?.positive).length,
-        neg: submitters.filter((s) => s !== submitter && result[submitter]?.[s]?.negative).length,
+        pos: submitters.filter((s) => s !== submitter && result[submitter]?.[s]?.positive?.length).length,
+        neg: submitters.filter((s) => s !== submitter && result[submitter]?.[s]?.negative?.length).length,
       },
     ])
   );
@@ -28,8 +28,8 @@ export default function NominationMatrix({ result, showTotal = true }: Readonly<
     nominees.map((nominee) => [
       nominee,
       {
-        pos: submitters.filter((s) => s !== nominee && result[nominee][s]?.positive).length,
-        neg: submitters.filter((s) => s !== nominee && result[nominee][s]?.negative).length,
+        pos: submitters.filter((s) => s !== nominee && result[nominee][s]?.positive?.length).length,
+        neg: submitters.filter((s) => s !== nominee && result[nominee][s]?.negative?.length).length,
       },
     ])
   );
@@ -85,15 +85,15 @@ export default function NominationMatrix({ result, showTotal = true }: Readonly<
               if (isSelf) {
                 posBg = "bg-gray-200"; negBg = "bg-gray-200";
               } else {
-                if (rel?.positive) { posBg = "bg-green-200"; posLabel = "+"; }
-                if (rel?.negative) { negBg = "bg-red-200"; negLabel = "-"; }
+                if (rel?.positive?.length) { posBg = "bg-green-200"; posLabel = rel.positive.map(c => `+${c}`).join(""); }
+                if (rel?.negative?.length) { negBg = "bg-red-200"; negLabel = rel.negative.map(c => `-${c}`).join(""); }
               }
               return (
                 <Fragment key={nominee}>
-                  <td className={`border border-[#bae6fd] px-3 py-2 text-center font-bold text-green-600 ${posBg}`}>
+                  <td className={`border border-[#bae6fd] px-1 py-2 text-center font-bold text-green-600 text-xs ${posBg}`}>
                     {posLabel}
                   </td>
-                  <td className={`border border-[#bae6fd] px-3 py-2 text-center font-bold text-red-600 ${negBg}`}>
+                  <td className={`border border-[#bae6fd] px-1 py-2 text-center font-bold text-red-600 text-xs ${negBg}`}>
                     {negLabel}
                   </td>
                 </Fragment>

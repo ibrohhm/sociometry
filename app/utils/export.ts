@@ -37,8 +37,12 @@ export function exportNominationMatrix(teamName: string, result: NomineeRelation
     i + 1,
     submitter,
     ...nominees.flatMap((nominee) => {
+      if (submitter === nominee) return ["", ""];
       const rel = result[nominee][submitter];
-      return [rel?.positive ? "+" : "", rel?.negative ? "-" : ""];
+      return [
+        rel?.positive?.length ? rel.positive.map((c) => `+${c}`).join("") : "",
+        rel?.negative?.length ? rel.negative.map((c) => `-${c}`).join("") : "",
+      ];
     }),
   ]);
 
