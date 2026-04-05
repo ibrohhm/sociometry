@@ -1,11 +1,14 @@
 import { auth } from "@clerk/nextjs/server";
 import type { CreateTeamPayload } from "../../types/team";
 
-export async function GET(facilitatorId: string) {
+export async function GET(request: Request) {
   const { userId } = await auth();
   if (!userId) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const { searchParams } = new URL(request.url);
+  const facilitatorId = searchParams.get('facilitator_id');
 
   if (!facilitatorId) {
     return Response.json({ error: "facilitator_id is required" }, { status: 400 });

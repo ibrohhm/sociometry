@@ -2,7 +2,7 @@ export async function POST(request: Request) {
   const { pin } = await request.json();
 
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/teams/${encodeURIComponent(pin)}`
+    `${process.env.NEXT_PUBLIC_API_URL}/api/teams/pin/${encodeURIComponent(pin)}`
   );
 
   if (!res.ok) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Sociometry from "../components/Sociometry";
 import Button from "../components/Button";
@@ -23,7 +23,7 @@ function buildAnswerKeys(data: Category[]): string[] {
   );
 }
 
-export default function SurveyPage() {
+function SurveyContent() {
   const pin = useSearchParams().get("pin") ?? "";
   const [team, setTeam] = useState<Team | null>(null);
   const [teamError, setTeamError] = useState(false);
@@ -224,5 +224,20 @@ export default function SurveyPage() {
         </div>
       </Card>
     </div>
+  );
+}
+
+export default function SurveyPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="w-full max-w-md flex flex-col items-center gap-4">
+          <Sociometry />
+          <LoadingOverlay />
+        </div>
+      }
+    >
+      <SurveyContent />
+    </Suspense>
   );
 }
